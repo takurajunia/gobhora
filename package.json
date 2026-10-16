@@ -13,7 +13,8 @@
     "db:sample": "tsx db/scripts/make-sample-data.ts",
     "db:seed": "node --env-file-if-exists=.env.local --import tsx db/scripts/seed.ts",
     "db:seed:reset": "node --env-file-if-exists=.env.local --import tsx db/scripts/seed.ts --reset",
-    "db:simulate": "node --env-file-if-exists=.env.local --import tsx db/scripts/simulate-results.ts"
+    "db:simulate": "node --env-file-if-exists=.env.local --import tsx db/scripts/simulate-results.ts",
+    "db:stats": "node --env-file-if-exists=.env.local --import tsx db/scripts/print-stats.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.4",
