@@ -1,0 +1,133 @@
+matchweek,date,time,home,away,venue
+1,2026-07-04,11:00,Tornado FC,Hatfield Wanderers,Rufaro Stadium
+1,2026-07-04,13:00,Real Stars,Dzivarasekwa United,Gwanzura Stadium
+1,2026-07-04,15:00,Kuwadzana United,Warren Park FC,National Sports Stadium
+1,2026-07-04,11:00,Highfield Rovers,Mabvuku Eagles,Gwanzura Stadium
+1,2026-07-04,13:00,Arcadia FC,Budiriro Stars,Raylton Sports Club
+1,2026-07-04,15:00,Mbare Sporting,Glen View Warriors,Rufaro Stadium
+2,2026-07-11,11:00,Dzivarasekwa United,Tornado FC,Raylton Sports Club
+2,2026-07-11,13:00,Warren Park FC,Hatfield Wanderers,National Sports Stadium
+2,2026-07-11,15:00,Mabvuku Eagles,Real Stars,National Sports Stadium
+2,2026-07-11,11:00,Budiriro Stars,Kuwadzana United,Rufaro Stadium
+2,2026-07-11,13:00,Glen View Warriors,Highfield Rovers,Gwanzura Stadium
+2,2026-07-11,15:00,Mbare Sporting,Arcadia FC,Rufaro Stadium
+3,2026-07-18,11:00,Tornado FC,Warren Park FC,Rufaro Stadium
+3,2026-07-18,13:00,Dzivarasekwa United,Mabvuku Eagles,Raylton Sports Club
+3,2026-07-18,15:00,Hatfield Wanderers,Budiriro Stars,Raylton Sports Club
+3,2026-07-18,11:00,Real Stars,Glen View Warriors,Gwanzura Stadium
+3,2026-07-18,13:00,Kuwadzana United,Mbare Sporting,National Sports Stadium
+3,2026-07-18,15:00,Highfield Rovers,Arcadia FC,Gwanzura Stadium
+4,2026-07-25,11:00,Mabvuku Eagles,Tornado FC,National Sports Stadium
+4,2026-07-25,13:00,Budiriro Stars,Warren Park FC,Rufaro Stadium
+4,2026-07-25,15:00,Glen View Warriors,Dzivarasekwa United,Gwanzura Stadium
+4,2026-07-25,11:00,Mbare Sporting,Hatfield Wanderers,Rufaro Stadium
+4,2026-07-25,13:00,Arcadia FC,Real Stars,Raylton Sports Club
+4,2026-07-25,15:00,Highfield Rovers,Kuwadzana United,Gwanzura Stadium
+5,2026-08-01,11:00,Tornado FC,Budiriro Stars,Rufaro Stadium
+5,2026-08-01,13:00,Mabvuku Eagles,Glen View Warriors,National Sports Stadium
+5,2026-08-01,15:00,Warren Park FC,Mbare Sporting,National Sports Stadium
+5,2026-08-01,11:00,Dzivarasekwa United,Arcadia FC,Raylton Sports Club
+5,2026-08-01,13:00,Hatfield Wanderers,Highfield Rovers,Raylton Sports Club
+5,2026-08-01,15:00,Real Stars,Kuwadzana United,Gwanzura Stadium
+6,2026-08-08,11:00,Glen View Warriors,Tornado FC,Gwanzura Stadium
+6,2026-08-08,13:00,Mbare Sporting,Budiriro Stars,Rufaro Stadium
+6,2026-08-08,15:00,Arcadia FC,Mabvuku Eagles,Raylton Sports Club
+6,2026-08-08,11:00,Highfield Rovers,Warren Park FC,Gwanzura Stadium
+6,2026-08-08,13:00,Kuwadzana United,Dzivarasekwa United,National Sports Stadium
+6,2026-08-08,15:00,Real Stars,Hatfield Wanderers,Gwanzura Stadium
+7,2026-08-15,11:00,Tornado FC,Mbare Sporting,Rufaro Stadium
+7,2026-08-15,13:00,Glen View Warriors,Arcadia FC,Gwanzura Stadium
+7,2026-08-15,15:00,Budiriro Stars,Highfield Rovers,Rufaro Stadium
+7,2026-08-15,11:00,Mabvuku Eagles,Kuwadzana United,National Sports Stadium
+7,2026-08-15,13:00,Warren Park FC,Real Stars,National Sports Stadium
+7,2026-08-15,15:00,Dzivarasekwa United,Hatfield Wanderers,Raylton Sports Club
+8,2026-08-22,11:00,Arcadia FC,Tornado FC,Raylton Sports Club
+8,2026-08-22,13:00,Highfield Rovers,Mbare Sporting,Gwanzura Stadium
+8,2026-08-22,15:00,Kuwadzana United,Glen View Warriors,National Sports Stadium
+8,2026-08-22,11:00,Real Stars,Budiriro Stars,Gwanzura Stadium
+8,2026-08-22,13:00,Hatfield Wanderers,Mabvuku Eagles,Raylton Sports Club
+8,2026-08-22,15:00,Dzivarasekwa United,Warren Park FC,Raylton Sports Club
+9,2026-08-29,11:00,Tornado FC,Highfield Rovers,Rufaro Stadium
+9,2026-08-29,13:00,Arcadia FC,Kuwadzana United,Raylton Sports Club
+9,2026-08-29,15:00,Mbare Sporting,Real Stars,Rufaro Stadium
+9,2026-08-29,11:00,Glen View Warriors,Hatfield Wanderers,Gwanzura Stadium
+9,2026-08-29,13:00,Budiriro Stars,Dzivarasekwa United,Rufaro Stadium
+9,2026-08-29,15:00,Mabvuku Eagles,Warren Park FC,National Sports Stadium
+10,2026-09-05,11:00,Kuwadzana United,Tornado FC,National Sports Stadium
+10,2026-09-05,13:00,Real Stars,Highfield Rovers,Gwanzura Stadium
+10,2026-09-05,15:00,Hatfield Wanderers,Arcadia FC,Raylton Sports Club
+10,2026-09-05,11:00,Dzivarasekwa United,Mbare Sporting,Raylton Sports Club
+10,2026-09-05,13:00,Warren Park FC,Glen View Warriors,National Sports Stadium
+10,2026-09-05,15:00,Mabvuku Eagles,Budiriro Stars,National Sports Stadium
+11,2026-09-12,11:00,Tornado FC,Real Stars,Rufaro Stadium
+11,2026-09-12,13:00,Kuwadzana United,Hatfield Wanderers,National Sports Stadium
+11,2026-09-12,15:00,Highfield Rovers,Dzivarasekwa United,Gwanzura Stadium
+11,2026-09-12,11:00,Arcadia FC,Warren Park FC,Raylton Sports Club
+11,2026-09-12,13:00,Mbare Sporting,Mabvuku Eagles,Rufaro Stadium
+11,2026-09-12,15:00,Glen View Warriors,Budiriro Stars,Gwanzura Stadium
+12,2026-09-19,11:00,Hatfield Wanderers,Tornado FC,Raylton Sports Club
+12,2026-09-19,13:00,Dzivarasekwa United,Real Stars,Raylton Sports Club
+12,2026-09-19,15:00,Warren Park FC,Kuwadzana United,National Sports Stadium
+12,2026-09-19,11:00,Mabvuku Eagles,Highfield Rovers,National Sports Stadium
+12,2026-09-19,13:00,Budiriro Stars,Arcadia FC,Rufaro Stadium
+12,2026-09-19,15:00,Glen View Warriors,Mbare Sporting,Gwanzura Stadium
+13,2026-09-26,11:00,Tornado FC,Dzivarasekwa United,Rufaro Stadium
+13,2026-09-26,13:00,Hatfield Wanderers,Warren Park FC,Raylton Sports Club
+13,2026-09-26,15:00,Real Stars,Mabvuku Eagles,Gwanzura Stadium
+13,2026-09-26,11:00,Kuwadzana United,Budiriro Stars,National Sports Stadium
+13,2026-09-26,13:00,Highfield Rovers,Glen View Warriors,Gwanzura Stadium
+13,2026-09-26,15:00,Arcadia FC,Mbare Sporting,Raylton Sports Club
+14,2026-10-03,11:00,Warren Park FC,Tornado FC,National Sports Stadium
+14,2026-10-03,13:00,Mabvuku Eagles,Dzivarasekwa United,National Sports Stadium
+14,2026-10-03,15:00,Budiriro Stars,Hatfield Wanderers,Rufaro Stadium
+14,2026-10-03,11:00,Glen View Warriors,Real Stars,Gwanzura Stadium
+14,2026-10-03,13:00,Mbare Sporting,Kuwadzana United,Rufaro Stadium
+14,2026-10-03,15:00,Arcadia FC,Highfield Rovers,Raylton Sports Club
+15,2026-10-10,11:00,Tornado FC,Mabvuku Eagles,Rufaro Stadium
+15,2026-10-10,13:00,Warren Park FC,Budiriro Stars,National Sports Stadium
+15,2026-10-10,15:00,Dzivarasekwa United,Glen View Warriors,Raylton Sports Club
+15,2026-10-10,11:00,Hatfield Wanderers,Mbare Sporting,Raylton Sports Club
+15,2026-10-10,13:00,Real Stars,Arcadia FC,Gwanzura Stadium
+15,2026-10-10,15:00,Kuwadzana United,Highfield Rovers,National Sports Stadium
+16,2026-10-17,11:00,Budiriro Stars,Tornado FC,Rufaro Stadium
+16,2026-10-17,13:00,Glen View Warriors,Mabvuku Eagles,Gwanzura Stadium
+16,2026-10-17,15:00,Mbare Sporting,Warren Park FC,Rufaro Stadium
+16,2026-10-17,11:00,Arcadia FC,Dzivarasekwa United,Raylton Sports Club
+16,2026-10-17,13:00,Highfield Rovers,Hatfield Wanderers,Gwanzura Stadium
+16,2026-10-17,15:00,Kuwadzana United,Real Stars,National Sports Stadium
+17,2026-10-24,11:00,Tornado FC,Glen View Warriors,Rufaro Stadium
+17,2026-10-24,13:00,Budiriro Stars,Mbare Sporting,Rufaro Stadium
+17,2026-10-24,15:00,Mabvuku Eagles,Arcadia FC,National Sports Stadium
+17,2026-10-24,11:00,Warren Park FC,Highfield Rovers,National Sports Stadium
+17,2026-10-24,13:00,Dzivarasekwa United,Kuwadzana United,Raylton Sports Club
+17,2026-10-24,15:00,Hatfield Wanderers,Real Stars,Raylton Sports Club
+18,2026-10-31,11:00,Mbare Sporting,Tornado FC,Rufaro Stadium
+18,2026-10-31,13:00,Arcadia FC,Glen View Warriors,Raylton Sports Club
+18,2026-10-31,15:00,Highfield Rovers,Budiriro Stars,Gwanzura Stadium
+18,2026-10-31,11:00,Kuwadzana United,Mabvuku Eagles,National Sports Stadium
+18,2026-10-31,13:00,Real Stars,Warren Park FC,Gwanzura Stadium
+18,2026-10-31,15:00,Hatfield Wanderers,Dzivarasekwa United,Raylton Sports Club
+19,2026-11-07,11:00,Tornado FC,Arcadia FC,Rufaro Stadium
+19,2026-11-07,13:00,Mbare Sporting,Highfield Rovers,Rufaro Stadium
+19,2026-11-07,15:00,Glen View Warriors,Kuwadzana United,Gwanzura Stadium
+19,2026-11-07,11:00,Budiriro Stars,Real Stars,Rufaro Stadium
+19,2026-11-07,13:00,Mabvuku Eagles,Hatfield Wanderers,National Sports Stadium
+19,2026-11-07,15:00,Warren Park FC,Dzivarasekwa United,National Sports Stadium
+20,2026-11-14,11:00,Highfield Rovers,Tornado FC,Gwanzura Stadium
+20,2026-11-14,13:00,Kuwadzana United,Arcadia FC,National Sports Stadium
+20,2026-11-14,15:00,Real Stars,Mbare Sporting,Gwanzura Stadium
+20,2026-11-14,11:00,Hatfield Wanderers,Glen View Warriors,Raylton Sports Club
+20,2026-11-14,13:00,Dzivarasekwa United,Budiriro Stars,Raylton Sports Club
+20,2026-11-14,15:00,Warren Park FC,Mabvuku Eagles,National Sports Stadium
+21,2026-11-21,11:00,Tornado FC,Kuwadzana United,Rufaro Stadium
+21,2026-11-21,13:00,Highfield Rovers,Real Stars,Gwanzura Stadium
+21,2026-11-21,15:00,Arcadia FC,Hatfield Wanderers,Raylton Sports Club
+21,2026-11-21,11:00,Mbare Sporting,Dzivarasekwa United,Rufaro Stadium
+21,2026-11-21,13:00,Glen View Warriors,Warren Park FC,Gwanzura Stadium
+21,2026-11-21,15:00,Budiriro Stars,Mabvuku Eagles,Rufaro Stadium
+22,2026-11-28,11:00,Real Stars,Tornado FC,Gwanzura Stadium
+22,2026-11-28,13:00,Hatfield Wanderers,Kuwadzana United,Raylton Sports Club
+22,2026-11-28,15:00,Dzivarasekwa United,Highfield Rovers,Raylton Sports Club
+22,2026-11-28,11:00,Warren Park FC,Arcadia FC,National Sports Stadium
+22,2026-11-28,13:00,Mabvuku Eagles,Mbare Sporting,National Sports Stadium
+22,2026-11-28,15:00,Budiriro Stars,Glen View Warriors,Rufaro Stadium
