@@ -9,7 +9,10 @@
     "lint": "eslint",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file-if-exists=.env.local db/scripts/migrate.mjs",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:sample": "tsx db/scripts/make-sample-data.ts",
+    "db:seed": "node --env-file-if-exists=.env.local --import tsx db/scripts/seed.ts",
+    "db:seed:reset": "node --env-file-if-exists=.env.local --import tsx db/scripts/seed.ts --reset"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.4",
@@ -25,10 +28,12 @@
     "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "csv-parse": "^7.0.3",
     "drizzle-kit": "^0.31.11",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }
