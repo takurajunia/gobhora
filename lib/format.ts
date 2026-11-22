@@ -30,3 +30,34 @@ export function goalLabel(goal: GoalEvent) {
   const note = goal.isOwnGoal ? " (OG)" : goal.isPenalty ? " (pen)" : "";
   return `${who}${minute}${note}`;
 }
+
+// Standard competition ranking: equal values share a rank (1, 2, 2, 4)
+export function withRank<T extends object>(
+  rows: T[],
+  value: (row: T) => number,
+) {
+  let rank = 0;
+  return rows.map((row, i) => {
+    if (i === 0 || value(row) !== value(rows[i - 1])) rank = i + 1;
+    return { ...row, rank };
+  });
+}
+
+// Groups matches that are already sorted, keeping their order
+export function groupByMatchweek<
+  T extends { matchweek: number | null; kickoffAt: Date | null },
+>(rows: T[]) {
+  const groups: { matchweek: number | null; date: Date | null; items: T[] }[] =
+    [];
+  for (const row of rows) {
+    const last = groups[groups.length - 1];
+    if (last && last.matchweek === row.matchweek) last.items.push(row);
+    else
+      groups.push({
+        matchweek: row.matchweek,
+        date: row.kickoffAt,
+        items: [row],
+      });
+  }
+  return groups;
+}

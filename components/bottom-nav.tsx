@@ -20,13 +20,21 @@ type Tab = {
 
 const league = `/leagues/${DEFAULT_LEAGUE}`;
 
+const homeSections = ["table", "scorers", "mvps"].map((s) => `${league}/${s}`);
+const matchSections = ["matches", "fixtures"].map((s) => `${league}/${s}`);
+
 const tabs: Tab[] = [
-  { label: "Home", href: league, icon: House, matches: (p) => p === league },
+  {
+    label: "Home",
+    href: league,
+    icon: House,
+    matches: (p) => p === league || homeSections.some((s) => p.startsWith(s)),
+  },
   {
     label: "Matches",
     href: `${league}/matches`,
     icon: CalendarDays,
-    matches: (p) => p.startsWith(`${league}/matches`),
+    matches: (p) => matchSections.some((s) => p.startsWith(s)),
   },
   {
     label: "Teams",

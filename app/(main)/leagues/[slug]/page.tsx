@@ -115,7 +115,7 @@ async function LeagueContent({ params }: Props) {
         )}
       </Section>
 
-      <Section title="Fixtures" href={`${base}/matches`}>
+      <Section title="Fixtures" href={`${base}/fixtures`}>
         {next.length > 0 ? (
           <MatchweekCard matchweek={next[0].matchweek} date={next[0].kickoffAt}>
             {next.map((f) => (
