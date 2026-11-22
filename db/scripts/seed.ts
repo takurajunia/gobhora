@@ -285,7 +285,7 @@ async function main() {
 
 main()
   .catch((error) => {
-    console.error(`✗ Seed failed: ${error.message}`);
+    console.error(`✗ Seed failed: ${error.cause?.message ?? error.message}`);
     process.exitCode = 1;
   })
   .finally(() => db.$client.end());

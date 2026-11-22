@@ -86,7 +86,7 @@ async function main() {
 
 main()
   .catch((error) => {
-    console.error(`✗ Failed: ${error.message}`);
+    console.error(`✗ Failed: ${error.cause?.message ?? error.message}`);
     process.exitCode = 1;
   })
   .finally(() => db.$client.end());
