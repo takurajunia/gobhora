@@ -9,6 +9,7 @@ import {
   ResultItem,
 } from "@/components/match-cards";
 import { PlayerCards } from "@/components/player-cards";
+import { SearchBox } from "@/components/search-box";
 import {
   getLeague,
   getLeagueTable,
@@ -16,6 +17,7 @@ import {
   getRecentResults,
   getTopScorers,
   getUpcomingFixtures,
+  getSearchIndex,
 } from "@/lib/data";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -38,13 +40,15 @@ async function LeagueContent({ params }: Props) {
   if (!league) notFound();
 
   const base = `/leagues/${slug}`;
-  const [table, results, fixtures, scorers, mvps] = await Promise.all([
-    getLeagueTable(league.seasonId),
-    getRecentResults(league.seasonId, 6),
-    getUpcomingFixtures(league.seasonId, 6),
-    getTopScorers(league.seasonId, 3),
-    getMotmLeaders(league.seasonId, 3),
-  ]);
+  const [table, results, fixtures, scorers, mvps, searchIndex] =
+    await Promise.all([
+      getLeagueTable(league.seasonId),
+      getRecentResults(league.seasonId, 6),
+      getUpcomingFixtures(league.seasonId, 6),
+      getTopScorers(league.seasonId, 3),
+      getMotmLeaders(league.seasonId, 3),
+      getSearchIndex(league.leagueId),
+    ]);
 
   // Show only the latest matchweek's results and the next matchweek's fixtures
   const latest = results
@@ -57,6 +61,10 @@ async function LeagueContent({ params }: Props) {
   return (
     <>
       <SiteHeader leagueName={league.leagueName} />
+      <SearchBox
+        items={searchIndex}
+        placeholder="Search for a club or player"
+      />
 
       <Section title="League Table" href={`${base}/table`}>
         <div className="rounded-2xl bg-white px-3 shadow-sm">

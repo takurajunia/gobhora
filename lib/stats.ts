@@ -3,6 +3,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "../db";
 import { leagues, positionEnum, seasons } from "../db/schema";
+import type { SearchItem } from "./search";
 
 export type Outcome = "W" | "D" | "L";
 
@@ -463,4 +464,64 @@ export async function getPlayerRecentMatches(
     limit ${limit}
   `);
   return rows.map((row) => ({ ...row, kickoffAt: toDate(row.kickoffAt) }));
+}
+
+export type LeagueCard = {
+  id: number;
+  name: string;
+  slug: string;
+  region: string | null;
+  tier: string | null;
+  logoUrl: string | null;
+  teamCount: number;
+  isActive: boolean;
+};
+
+export async function getLeagueDirectory(): Promise<LeagueCard[]> {
+  const { rows } = await db.execute<LeagueCard>(sql`
+    select l.id, l.name, l.slug, l.region, l.tier, l.logo_url as "logoUrl",
+           (select count(*) from teams t where t.league_id = l.id)::int as "teamCount",
+           exists (select 1 from seasons s where s.league_id = l.id and s.is_current) as "isActive"
+    from leagues l
+    order by l.name
+  `);
+  return rows;
+}
+
+export type TeamSearchRow = {
+  name: string;
+  slug: string;
+  shortName: string | null;
+  area: string | null;
+  leagueName: string;
+};
+
+export async function getTeamsForSearch(): Promise<TeamSearchRow[]> {
+  const { rows } = await db.execute<TeamSearchRow>(sql`
+    select t.name, t.slug, t.short_name as "shortName", t.area, l.name as "leagueName"
+    from teams t
+    join leagues l on l.id = t.league_id
+    order by t.name
+  `);
+  return rows;
+}
+
+// Clubs first, then players. Players match on name and nickname, not on their club.
+export async function getSearchIndex(leagueId: number): Promise<SearchItem[]> {
+  const { rows } = await db.execute<SearchItem>(sql`
+    select 'team:' || t.slug as key, 'team' as kind, '/team/' || t.slug as href,
+           t.name as label, t.area as sub,
+           concat_ws(' ', t.name, t.short_name, t.area) as terms
+    from teams t
+    where t.league_id = ${leagueId}
+    union all
+    select 'player:' || p.id, 'player', '/player/' || p.id,
+           p.name, concat_ws(' • ', p.nickname, t.name),
+           concat_ws(' ', p.name, p.nickname)
+    from players p
+    join teams t on t.id = p.team_id
+    where t.league_id = ${leagueId} and p.status = 'active'
+    order by kind desc, label
+  `);
+  return rows;
 }

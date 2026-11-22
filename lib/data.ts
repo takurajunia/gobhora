@@ -102,3 +102,28 @@ export async function getPlayerRecentMatches(
   cacheTag(playerTag(playerId), seasonTag(seasonId));
   return stats.getPlayerRecentMatches(playerId, seasonId, limit);
 }
+
+// Welcome page and search lists: cleared by the admin when leagues, teams or players change
+export const directoryTag = "directory";
+export const searchTag = (leagueId: number) => `search:${leagueId}`;
+
+export async function getLeagueDirectory() {
+  "use cache";
+  cacheLife("max");
+  cacheTag(directoryTag);
+  return stats.getLeagueDirectory();
+}
+
+export async function getTeamsForSearch() {
+  "use cache";
+  cacheLife("max");
+  cacheTag(directoryTag);
+  return stats.getTeamsForSearch();
+}
+
+export async function getSearchIndex(leagueId: number) {
+  "use cache";
+  cacheLife("max");
+  cacheTag(searchTag(leagueId));
+  return stats.getSearchIndex(leagueId);
+}
