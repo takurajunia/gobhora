@@ -182,3 +182,133 @@ export async function getPlayerSeasonStats(
 
   return { ...totals, goalsByTeam };
 }
+
+export type MatchTeam = {
+  id: number;
+  name: string;
+  slug: string;
+  shortName: string | null;
+  logoUrl: string | null;
+};
+
+export type GoalEvent = {
+  teamId: number;
+  name: string | null; // null = unknown scorer
+  nickname: string | null;
+  minute: number | null;
+  isOwnGoal: boolean;
+  isPenalty: boolean;
+};
+
+export type ResultRow = {
+  fixtureId: number;
+  matchweek: number | null;
+  kickoffAt: Date | null;
+  home: MatchTeam;
+  away: MatchTeam;
+  homeScore: number;
+  awayScore: number;
+  goals: GoalEvent[];
+};
+
+export type FixtureRow = {
+  fixtureId: number;
+  matchweek: number | null;
+  kickoffAt: Date | null;
+  home: MatchTeam;
+  away: MatchTeam;
+  venueName: string | null;
+};
+
+export type MotmRow = {
+  playerId: number;
+  name: string;
+  nickname: string | null;
+  photoUrl: string | null;
+  teamName: string | null;
+  awards: number;
+};
+
+// Builds a JSON team object from a joined teams table alias (only ever called with "h" or "a")
+const teamJson = (alias: "h" | "a") =>
+  sql.raw(
+    `json_build_object('id', ${alias}.id, 'name', ${alias}.name, 'slug', ${alias}.slug, ` +
+      `'shortName', ${alias}.short_name, 'logoUrl', ${alias}.logo_url)`,
+  );
+
+// Drizzle returns timestamps from raw SQL as text. to_json() makes Postgres send them as ISO
+// strings ("2026-10-10T13:00:00+00:00"), which we turn into real Date objects before returning.
+type RawKickoff<T> = Omit<T, "kickoffAt"> & { kickoffAt: string | null };
+const toDate = (iso: string | null) => (iso ? new Date(iso) : null);
+
+// Newest results first, each with its goals in minute order
+export async function getRecentResults(
+  seasonId: number,
+  limit = 6,
+): Promise<ResultRow[]> {
+  const { rows } = await db.execute<RawKickoff<ResultRow>>(sql`
+    select f.id as "fixtureId", f.matchweek, to_json(f.kickoff_at) as "kickoffAt",
+           f.home_score as "homeScore", f.away_score as "awayScore",
+           ${teamJson("h")} as home,
+           ${teamJson("a")} as away,
+           coalesce((
+             select json_agg(json_build_object(
+                      'teamId', g.team_id,
+                      'name', p.name,
+                      'nickname', p.nickname,
+                      'minute', g.minute,
+                      'isOwnGoal', g.is_own_goal,
+                      'isPenalty', g.is_penalty)
+                    order by g.minute nulls last, g.id)
+             from goals g
+             left join players p on p.id = g.player_id
+             where g.fixture_id = f.id
+           ), '[]'::json) as goals
+    from fixtures f
+    join teams h on h.id = f.home_team_id
+    join teams a on a.id = f.away_team_id
+    where f.season_id = ${seasonId} and f.status = 'finished'
+    order by f.kickoff_at desc, f.id
+    limit ${limit}
+  `);
+  return rows.map((row) => ({ ...row, kickoffAt: toDate(row.kickoffAt) }));
+}
+
+// Matches without a result yet, soonest first
+export async function getUpcomingFixtures(
+  seasonId: number,
+  limit = 6,
+): Promise<FixtureRow[]> {
+  const { rows } = await db.execute<RawKickoff<FixtureRow>>(sql`
+    select f.id as "fixtureId", f.matchweek, to_json(f.kickoff_at) as "kickoffAt",
+           ${teamJson("h")} as home,
+           ${teamJson("a")} as away,
+           v.name as "venueName"
+    from fixtures f
+    join teams h on h.id = f.home_team_id
+    join teams a on a.id = f.away_team_id
+    left join venues v on v.id = f.venue_id
+    where f.season_id = ${seasonId} and f.status = 'scheduled'
+    order by f.kickoff_at, f.id
+    limit ${limit}
+  `);
+  return rows.map((row) => ({ ...row, kickoffAt: toDate(row.kickoffAt) }));
+}
+
+export async function getMotmLeaders(
+  seasonId: number,
+  limit = 10,
+): Promise<MotmRow[]> {
+  const { rows } = await db.execute<MotmRow>(sql`
+    select p.id as "playerId", p.name, p.nickname, p.photo_url as "photoUrl",
+           t.name as "teamName", count(*)::int as awards
+    from fixtures f
+    join players p on p.id = f.motm_player_id
+    left join teams t on t.id = p.team_id
+    where f.season_id = ${seasonId} and f.status = 'finished'
+    group by p.id, t.id
+    order by awards desc, p.name
+    limit ${limit}
+  `);
+  return rows;
+}
