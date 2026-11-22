@@ -2,7 +2,7 @@
 // Nothing here is cached; the pages decide how long to cache each result.
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "../db";
-import { leagues, seasons } from "../db/schema";
+import { leagues, positionEnum, seasons } from "../db/schema";
 
 export type Outcome = "W" | "D" | "L";
 
@@ -236,6 +236,12 @@ const teamJson = (alias: "h" | "a") =>
       `'shortName', ${alias}.short_name, 'logoUrl', ${alias}.logo_url)`,
   );
 
+// Optional "only matches involving this team" condition
+const teamFilter = (teamId?: number) =>
+  teamId
+    ? sql`and (f.home_team_id = ${teamId} or f.away_team_id = ${teamId})`
+    : sql``;
+
 // Drizzle returns timestamps from raw SQL as text. to_json() makes Postgres send them as ISO
 // strings ("2026-10-10T13:00:00+00:00"), which we turn into real Date objects before returning.
 type RawKickoff<T> = Omit<T, "kickoffAt"> & { kickoffAt: string | null };
@@ -245,6 +251,7 @@ const toDate = (iso: string | null) => (iso ? new Date(iso) : null);
 export async function getRecentResults(
   seasonId: number,
   limit = 6,
+  teamId?: number,
 ): Promise<ResultRow[]> {
   const { rows } = await db.execute<RawKickoff<ResultRow>>(sql`
     select f.id as "fixtureId", f.matchweek, to_json(f.kickoff_at) as "kickoffAt",
@@ -268,6 +275,7 @@ export async function getRecentResults(
     join teams h on h.id = f.home_team_id
     join teams a on a.id = f.away_team_id
     where f.season_id = ${seasonId} and f.status = 'finished'
+    ${teamFilter(teamId)}
     order by f.kickoff_at desc, f.id
     limit ${limit}
   `);
@@ -278,6 +286,7 @@ export async function getRecentResults(
 export async function getUpcomingFixtures(
   seasonId: number,
   limit = 6,
+  teamId?: number,
 ): Promise<FixtureRow[]> {
   const { rows } = await db.execute<RawKickoff<FixtureRow>>(sql`
     select f.id as "fixtureId", f.matchweek, to_json(f.kickoff_at) as "kickoffAt",
@@ -289,6 +298,7 @@ export async function getUpcomingFixtures(
     join teams a on a.id = f.away_team_id
     left join venues v on v.id = f.venue_id
     where f.season_id = ${seasonId} and f.status = 'scheduled'
+    ${teamFilter(teamId)}
     order by f.kickoff_at, f.id
     limit ${limit}
   `);
@@ -309,6 +319,68 @@ export async function getMotmLeaders(
     group by p.id, t.id
     order by awards desc, p.name
     limit ${limit}
+  `);
+  return rows;
+}
+
+export type Position = (typeof positionEnum.enumValues)[number];
+
+export type TeamProfile = {
+  id: number;
+  leagueSlug: string;
+  name: string;
+  slug: string;
+  shortName: string | null;
+  logoUrl: string | null;
+  area: string | null;
+  foundedYear: number | null;
+  managerName: string | null;
+  managerPhotoUrl: string | null;
+  venueName: string | null;
+};
+
+export async function getTeamBySlug(slug: string): Promise<TeamProfile | null> {
+  const { rows } = await db.execute<TeamProfile>(sql`
+    select t.id, l.slug as "leagueSlug", t.name, t.slug,
+           t.short_name as "shortName", t.logo_url as "logoUrl", t.area,
+           t.founded_year as "foundedYear", t.manager_name as "managerName",
+           t.manager_photo_url as "managerPhotoUrl", v.name as "venueName"
+    from teams t
+    join leagues l on l.id = t.league_id
+    left join venues v on v.id = t.home_venue_id
+    where t.slug = ${slug}
+  `);
+  return rows[0] ?? null;
+}
+
+export type SquadPlayer = {
+  id: number;
+  name: string;
+  nickname: string | null;
+  position: Position;
+  jerseyNumber: number | null;
+  photoUrl: string | null;
+  isCaptain: boolean;
+  appearances: number;
+  goals: number;
+};
+
+// Current squad with each player's season apps and goals (for any team, so totals follow a transfer)
+export async function getSquad(
+  teamId: number,
+  seasonId: number,
+): Promise<SquadPlayer[]> {
+  const { rows } = await db.execute<SquadPlayer>(sql`
+    select p.id, p.name, p.nickname, p.position,
+           p.jersey_number as "jerseyNumber", p.photo_url as "photoUrl",
+           p.is_captain as "isCaptain",
+           (select count(*) from appearances a join fixtures f on f.id = a.fixture_id
+             where a.player_id = p.id and f.season_id = ${seasonId} and f.status = 'finished')::int as appearances,
+           (select count(*) from goals g join fixtures f on f.id = g.fixture_id
+             where g.player_id = p.id and f.season_id = ${seasonId} and not g.is_own_goal)::int as goals
+    from players p
+    where p.team_id = ${teamId} and p.status = 'active'
+    order by p.position, p.jersey_number nulls last, p.name
   `);
   return rows;
 }

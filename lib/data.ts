@@ -21,18 +21,26 @@ export async function getLeagueTable(seasonId: number) {
   return stats.getLeagueTable(seasonId);
 }
 
-export async function getRecentResults(seasonId: number, limit?: number) {
+export async function getRecentResults(
+  seasonId: number,
+  limit?: number,
+  teamId?: number,
+) {
   "use cache";
   cacheLife("max");
   cacheTag(seasonTag(seasonId));
-  return stats.getRecentResults(seasonId, limit);
+  return stats.getRecentResults(seasonId, limit, teamId);
 }
 
-export async function getUpcomingFixtures(seasonId: number, limit?: number) {
+export async function getUpcomingFixtures(
+  seasonId: number,
+  limit?: number,
+  teamId?: number,
+) {
   "use cache";
   cacheLife("max");
   cacheTag(seasonTag(seasonId));
-  return stats.getUpcomingFixtures(seasonId, limit);
+  return stats.getUpcomingFixtures(seasonId, limit, teamId);
 }
 
 export async function getTopScorers(seasonId: number, limit?: number) {
@@ -47,4 +55,22 @@ export async function getMotmLeaders(seasonId: number, limit?: number) {
   cacheLife("max");
   cacheTag(seasonTag(seasonId));
   return stats.getMotmLeaders(seasonId, limit);
+}
+
+// Team details change when an admin edits the club; the squad changes with results and player edits
+export const teamTag = (slug: string) => `team:${slug}`;
+export const squadTag = (teamId: number) => `squad:${teamId}`;
+
+export async function getTeam(slug: string) {
+  "use cache";
+  cacheLife("max");
+  cacheTag(teamTag(slug));
+  return stats.getTeamBySlug(slug);
+}
+
+export async function getSquad(teamId: number, seasonId: number) {
+  "use cache";
+  cacheLife("max");
+  cacheTag(squadTag(teamId), seasonTag(seasonId));
+  return stats.getSquad(teamId, seasonId);
 }

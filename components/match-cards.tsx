@@ -73,7 +73,20 @@ export function ResultItem({ result }: { result: ResultRow }) {
   );
 }
 
-export function FixtureItem({ fixture }: { fixture: FixtureRow }) {
+export function FixtureItem({
+  fixture,
+  showDate = false,
+}: {
+  fixture: FixtureRow;
+  showDate?: boolean;
+}) {
+  const details = [
+    showDate && fixture.kickoffAt ? formatDay(fixture.kickoffAt) : null,
+    fixture.venueName,
+  ]
+    .filter(Boolean)
+    .join(" • ");
+
   return (
     <li className="py-3">
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
@@ -83,10 +96,8 @@ export function FixtureItem({ fixture }: { fixture: FixtureRow }) {
         </span>
         <TeamName team={fixture.away} align="right" />
       </div>
-      {fixture.venueName && (
-        <p className="mt-1 text-center text-xs text-muted">
-          {fixture.venueName}
-        </p>
+      {details && (
+        <p className="mt-1 text-center text-xs text-muted">{details}</p>
       )}
     </li>
   );

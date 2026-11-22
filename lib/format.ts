@@ -61,3 +61,24 @@ export function groupByMatchweek<
   }
   return groups;
 }
+
+export const POSITION_LABELS = {
+  GK: "Goalkeeper",
+  DF: "Defender",
+  MF: "Midfielder",
+  ST: "Striker",
+} as const;
+
+export const POSITION_GROUPS = [
+  { position: "GK", label: "Goalkeepers" },
+  { position: "DF", label: "Defenders" },
+  { position: "MF", label: "Midfielders" },
+  { position: "ST", label: "Strikers" },
+] as const;
+
+// 1st, 2nd, 3rd, 4th ... 11th, 12th, 13th ... 21st
+export function ordinal(n: number) {
+  const suffixes = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
+}
