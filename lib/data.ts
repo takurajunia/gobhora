@@ -74,3 +74,31 @@ export async function getSquad(teamId: number, seasonId: number) {
   cacheTag(squadTag(teamId), seasonTag(seasonId));
   return stats.getSquad(teamId, seasonId);
 }
+
+// Player details change when an admin edits him; his stats change with results
+export const playerTag = (playerId: number) => `player:${playerId}`;
+
+export async function getPlayer(playerId: number) {
+  "use cache";
+  cacheLife("max");
+  cacheTag(playerTag(playerId));
+  return stats.getPlayerProfile(playerId);
+}
+
+export async function getPlayerSeasonStats(playerId: number, seasonId: number) {
+  "use cache";
+  cacheLife("max");
+  cacheTag(playerTag(playerId), seasonTag(seasonId));
+  return stats.getPlayerSeasonStats(playerId, seasonId);
+}
+
+export async function getPlayerRecentMatches(
+  playerId: number,
+  seasonId: number,
+  limit?: number,
+) {
+  "use cache";
+  cacheLife("max");
+  cacheTag(playerTag(playerId), seasonTag(seasonId));
+  return stats.getPlayerRecentMatches(playerId, seasonId, limit);
+}

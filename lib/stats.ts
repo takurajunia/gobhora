@@ -384,3 +384,83 @@ export async function getSquad(
   `);
   return rows;
 }
+
+export type PlayerProfile = {
+  id: number;
+  name: string;
+  nickname: string | null;
+  position: Position;
+  jerseyNumber: number | null;
+  photoUrl: string | null;
+  isCaptain: boolean;
+  teamName: string | null;
+  teamSlug: string | null;
+  teamShortName: string | null;
+  teamLogoUrl: string | null;
+  leagueSlug: string | null;
+};
+
+export async function getPlayerProfile(
+  playerId: number,
+): Promise<PlayerProfile | null> {
+  const { rows } = await db.execute<PlayerProfile>(sql`
+    select p.id, p.name, p.nickname, p.position,
+           p.jersey_number as "jerseyNumber", p.photo_url as "photoUrl",
+           p.is_captain as "isCaptain",
+           t.name as "teamName", t.slug as "teamSlug",
+           t.short_name as "teamShortName", t.logo_url as "teamLogoUrl",
+           l.slug as "leagueSlug"
+    from players p
+    left join teams t on t.id = p.team_id
+    left join leagues l on l.id = t.league_id
+    where p.id = ${playerId}
+  `);
+  return rows[0] ?? null;
+}
+
+export type PlayerMatch = {
+  fixtureId: number;
+  kickoffAt: Date | null;
+  isHome: boolean;
+  goalsFor: number;
+  goalsAgainst: number;
+  opponent: { name: string; slug: string };
+  goals: { minute: number | null; isOwnGoal: boolean; isPenalty: boolean }[];
+  cards: ("yellow" | "red")[];
+  isMotm: boolean;
+};
+
+// The matches he actually played in, newest first, seen from his team's side
+export async function getPlayerRecentMatches(
+  playerId: number,
+  seasonId: number,
+  limit = 5,
+): Promise<PlayerMatch[]> {
+  const { rows } = await db.execute<RawKickoff<PlayerMatch>>(sql`
+    select f.id as "fixtureId", to_json(f.kickoff_at) as "kickoffAt",
+           (a.team_id = f.home_team_id) as "isHome",
+           case when a.team_id = f.home_team_id then f.home_score else f.away_score end as "goalsFor",
+           case when a.team_id = f.home_team_id then f.away_score else f.home_score end as "goalsAgainst",
+           json_build_object('name', o.name, 'slug', o.slug) as opponent,
+           coalesce((
+             select json_agg(json_build_object(
+                      'minute', g.minute, 'isOwnGoal', g.is_own_goal, 'isPenalty', g.is_penalty)
+                    order by g.minute nulls last, g.id)
+             from goals g
+             where g.fixture_id = f.id and g.player_id = ${playerId}
+           ), '[]'::json) as goals,
+           coalesce((
+             select json_agg(c.type order by c.minute nulls last, c.id)
+             from cards c
+             where c.fixture_id = f.id and c.player_id = ${playerId}
+           ), '[]'::json) as cards,
+           coalesce(f.motm_player_id = ${playerId}, false) as "isMotm"
+    from appearances a
+    join fixtures f on f.id = a.fixture_id
+    join teams o on o.id = case when a.team_id = f.home_team_id then f.away_team_id else f.home_team_id end
+    where a.player_id = ${playerId} and f.season_id = ${seasonId} and f.status = 'finished'
+    order by f.kickoff_at desc, f.id desc
+    limit ${limit}
+  `);
+  return rows.map((row) => ({ ...row, kickoffAt: toDate(row.kickoffAt) }));
+}
