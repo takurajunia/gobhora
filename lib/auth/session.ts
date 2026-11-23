@@ -2,7 +2,7 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createHash, randomBytes } from "node:crypto";
-import { and, eq, gt, lt } from "drizzle-orm";
+import { and, eq, gt, lt, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { admins, sessions } from "@/db/schema";
 import { SESSION_COOKIE } from "./constants";
@@ -55,7 +55,7 @@ export const getCurrentAdmin = cache(async (): Promise<CurrentAdmin | null> => {
     .where(
       and(
         eq(sessions.id, hashToken(token)),
-        gt(sessions.expiresAt, new Date()),
+        gt(sessions.expiresAt, sql`now()`),
       ),
     );
   return row ?? null;
