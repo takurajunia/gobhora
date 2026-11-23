@@ -13,8 +13,8 @@ const pad = (value: string | number, width: number) =>
   String(value).padStart(width);
 
 async function main() {
-  const season = await getCurrentSeason("sazsl");
-  if (!season) throw new Error("no current season for league 'sazsl'");
+  const season = await getCurrentSeason("demo");
+  if (!season) throw new Error("no current season for league 'demo'");
   console.log(`${season.leagueName} ${season.seasonName}\n`);
 
   const table = await getLeagueTable(season.seasonId);

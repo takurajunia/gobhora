@@ -15,7 +15,9 @@
     "db:seed:reset": "node --env-file-if-exists=.env.local --import tsx db/scripts/seed.ts --reset",
     "db:simulate": "node --env-file-if-exists=.env.local --import tsx db/scripts/simulate-results.ts",
     "db:stats": "node --env-file-if-exists=.env.local --import tsx db/scripts/print-stats.ts",
-    "admin:create": "node --env-file-if-exists=.env.local --import tsx db/scripts/create-admin.ts"
+    "admin:create": "node --env-file-if-exists=.env.local --import tsx db/scripts/create-admin.ts",
+    "db:import-sazsl": "node --env-file-if-exists=.env.local --import tsx db/scripts/import-sazsl.ts",
+    "db:import-sazsl:reset": "node --env-file-if-exists=.env.local --import tsx db/scripts/import-sazsl.ts --reset"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.4",
@@ -36,6 +38,7 @@
     "drizzle-kit": "^0.31.11",
     "eslint": "^9",
     "eslint-config-next": "^16.4.6",
+    "exceljs": "^4.4.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5"

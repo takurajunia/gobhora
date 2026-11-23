@@ -22,6 +22,20 @@
       "when": 1795391236454,
       "tag": "0002_slim_supernaut",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795393438348,
+      "tag": "0003_furry_black_bolt",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795393441068,
+      "tag": "0004_rename-demo-league",
+      "breakpoints": true
     }
   ]
 }
