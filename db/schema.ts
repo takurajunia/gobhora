@@ -28,6 +28,7 @@ export const fixtureStatusEnum = pgEnum("fixture_status", [
   "postponed",
 ]);
 export const cardTypeEnum = pgEnum("card_type", ["yellow", "red"]);
+export const adminRoleEnum = pgEnum("admin_role", ["master", "league"]);
 
 // Leagues and seasons
 export const leagues = pgTable("leagues", {
@@ -60,6 +61,41 @@ export const seasons = pgTable(
       .on(t.leagueId)
       .where(sql`${t.isCurrent} = true`),
   ],
+);
+
+// Admin accounts and their logins
+export const admins = pgTable(
+  "admins",
+  {
+    id: id(),
+    name: text("name").notNull(),
+    phone: text("phone").notNull().unique(), // stored as 2637XXXXXXXX
+    passwordHash: text("password_hash").notNull(),
+    role: adminRoleEnum("role").notNull(),
+    leagueId: integer("league_id").references(() => leagues.id), // required for league admins
+    failedLogins: smallint("failed_logins").notNull().default(0),
+    lockedUntil: timestamp("locked_until", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    check(
+      "admins_league_admin_has_league",
+      sql`${t.role} = 'master' or ${t.leagueId} is not null`,
+    ),
+  ],
+);
+
+export const sessions = pgTable(
+  "sessions",
+  {
+    id: text("id").primaryKey(), // SHA-256 of the cookie token, never the token itself
+    adminId: integer("admin_id")
+      .notNull()
+      .references(() => admins.id, { onDelete: "cascade" }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("sessions_admin_idx").on(t.adminId)],
 );
 
 // Venues and teams
@@ -149,6 +185,9 @@ export const fixtures = pgTable(
     }),
     sheetPhotoUrl: text("sheet_photo_url"),
     resultEnteredAt: timestamp("result_entered_at", { withTimezone: true }),
+    resultEnteredBy: integer("result_entered_by").references(() => admins.id, {
+      onDelete: "set null",
+    }),
     createdAt: createdAt(),
   },
   (t) => [
