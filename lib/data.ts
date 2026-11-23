@@ -1,6 +1,7 @@
 // Cached versions of the stats queries for pages to use.
-// Results only change when an admin saves one, so these are cached "forever" and the
-// save clears the season's tag (updateTag), so the next visitor gets fresh numbers.
+// "use cache: remote" = Vercel's shared regional cache, so when an admin saves a result,
+// updateTag clears it for every server instance at once (plain "use cache" is per-instance memory).
+// The welcome page's two lists keep plain "use cache": that page is pre-built at deploy time.
 import { cacheLife, cacheTag } from "next/cache";
 import * as stats from "./stats";
 
@@ -8,14 +9,14 @@ export const leagueTag = (slug: string) => `league:${slug}`;
 export const seasonTag = (seasonId: number) => `season:${seasonId}`;
 
 export async function getLeague(slug: string) {
-  "use cache";
+  "use cache: remote";
   cacheLife("max");
   cacheTag(leagueTag(slug));
   return stats.getCurrentSeason(slug);
 }
 
 export async function getLeagueTable(seasonId: number) {
-  "use cache";
+  "use cache: remote";
   cacheLife("max");
   cacheTag(seasonTag(seasonId));
   return stats.getLeagueTable(seasonId);
@@ -26,7 +27,7 @@ export async function getRecentResults(
   limit?: number,
   teamId?: number,
 ) {
-  "use cache";
+  "use cache: remote";
   cacheLife("max");
   cacheTag(seasonTag(seasonId));
   return stats.getRecentResults(seasonId, limit, teamId);
@@ -37,21 +38,21 @@ export async function getUpcomingFixtures(
   limit?: number,
   teamId?: number,
 ) {
-  "use cache";
+  "use cache: remote";
   cacheLife("max");
   cacheTag(seasonTag(seasonId));
   return stats.getUpcomingFixtures(seasonId, limit, teamId);
 }
 
 export async function getTopScorers(seasonId: number, limit?: number) {
-  "use cache";
+  "use cache: remote";
   cacheLife("max");
   cacheTag(seasonTag(seasonId));
   return stats.getTopScorers(seasonId, limit);
 }
 
 export async function getMotmLeaders(seasonId: number, limit?: number) {
-  "use cache";
+  "use cache: remote";
   cacheLife("max");
   cacheTag(seasonTag(seasonId));
   return stats.getMotmLeaders(seasonId, limit);
@@ -62,14 +63,14 @@ export const teamTag = (slug: string) => `team:${slug}`;
 export const squadTag = (teamId: number) => `squad:${teamId}`;
 
 export async function getTeam(slug: string) {
-  "use cache";
+  "use cache: remote";
   cacheLife("max");
   cacheTag(teamTag(slug));
   return stats.getTeamBySlug(slug);
 }
 
 export async function getSquad(teamId: number, seasonId: number) {
-  "use cache";
+  "use cache: remote";
   cacheLife("max");
   cacheTag(squadTag(teamId), seasonTag(seasonId));
   return stats.getSquad(teamId, seasonId);
@@ -79,14 +80,14 @@ export async function getSquad(teamId: number, seasonId: number) {
 export const playerTag = (playerId: number) => `player:${playerId}`;
 
 export async function getPlayer(playerId: number) {
-  "use cache";
+  "use cache: remote";
   cacheLife("max");
   cacheTag(playerTag(playerId));
   return stats.getPlayerProfile(playerId);
 }
 
 export async function getPlayerSeasonStats(playerId: number, seasonId: number) {
-  "use cache";
+  "use cache: remote";
   cacheLife("max");
   cacheTag(playerTag(playerId), seasonTag(seasonId));
   return stats.getPlayerSeasonStats(playerId, seasonId);
@@ -97,7 +98,7 @@ export async function getPlayerRecentMatches(
   seasonId: number,
   limit?: number,
 ) {
-  "use cache";
+  "use cache: remote";
   cacheLife("max");
   cacheTag(playerTag(playerId), seasonTag(seasonId));
   return stats.getPlayerRecentMatches(playerId, seasonId, limit);
@@ -122,7 +123,7 @@ export async function getTeamsForSearch() {
 }
 
 export async function getSearchIndex(leagueId: number) {
-  "use cache";
+  "use cache: remote";
   cacheLife("max");
   cacheTag(searchTag(leagueId));
   return stats.getSearchIndex(leagueId);
