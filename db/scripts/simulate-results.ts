@@ -2,7 +2,7 @@
 // saveMatchResult() the admin form will use. Re-run after db:seed:reset to start over.
 import { and, asc, eq, lt, sql } from "drizzle-orm";
 import { db } from "../index";
-import { fixtures, players, teams } from "../schema";
+import { fixtures, leagues, players, seasons, teams } from "../schema";
 import {
   saveMatchResult,
   type CardInput,
@@ -40,7 +40,7 @@ function shuffle<T>(list: T[]): T[] {
   return copy;
 }
 
-type Squad = { id: number; position: string }[];
+type Squad = { id: number; position: string | null }[];
 
 // 11 starters (1 GK, 4 DF, 4 MF, 2 ST) + 3 subs. The first-choice keeper plays 80% of games.
 function pickLineup(squad: Squad): Squad {
@@ -138,8 +138,14 @@ async function main() {
       awayTeamId: fixtures.awayTeamId,
     })
     .from(fixtures)
+    .innerJoin(seasons, eq(seasons.id, fixtures.seasonId))
+    .innerJoin(leagues, eq(leagues.id, seasons.leagueId))
     .where(
-      and(eq(fixtures.status, "scheduled"), lt(fixtures.kickoffAt, new Date())),
+      and(
+        eq(leagues.slug, "demo"), // never invent results for a real league
+        eq(fixtures.status, "scheduled"),
+        lt(fixtures.kickoffAt, new Date()),
+      ),
     )
     .orderBy(asc(fixtures.kickoffAt), asc(fixtures.id));
 

@@ -39,6 +39,7 @@ export const leagues = pgTable("leagues", {
   region: text("region"),
   tier: text("tier"),
   logoUrl: text("logo_url"),
+  sListed: boolean("is_listed").notNull().default(true), // shown on the welcome page
   createdAt: createdAt(),
 });
 
@@ -142,7 +143,7 @@ export const players = pgTable(
     }),
     name: text("name").notNull(),
     nickname: text("nickname"),
-    position: positionEnum("position").notNull(),
+    position: positionEnum("position"), // optional: imported players may not have one yet
     jerseyNumber: smallint("jersey_number"),
     photoUrl: text("photo_url"),
     isCaptain: boolean("is_captain").notNull().default(false),
@@ -156,6 +157,52 @@ export const players = pgTable(
       .where(sql`${t.isCaptain} = true`),
     check("players_jersey_range", sql`${t.jerseyNumber} between 1 and 99`),
   ],
+);
+
+// Season totals from before GoBhora (e.g. the league's stats sheet): an opening balance that
+// match stats are added to. Written once by an import, never edited by admins.
+export const playerCarryovers = pgTable(
+  "player_carryovers",
+  {
+    seasonId: integer("season_id")
+      .notNull()
+      .references(() => seasons.id),
+    playerId: integer("player_id")
+      .notNull()
+      .references(() => players.id),
+    teamId: integer("team_id")
+      .notNull()
+      .references(() => teams.id), // the club he did it for
+    goals: smallint("goals").notNull().default(0),
+    ownGoals: smallint("own_goals").notNull().default(0),
+    yellowCards: smallint("yellow_cards"), // null = the source didn't track them
+    redCards: smallint("red_cards").notNull().default(0),
+    source: text("source").notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.seasonId, t.playerId, t.teamId] }),
+    index("player_carryovers_player_idx").on(t.playerId),
+  ],
+);
+
+export const teamCarryovers = pgTable(
+  "team_carryovers",
+  {
+    seasonId: integer("season_id")
+      .notNull()
+      .references(() => seasons.id),
+    teamId: integer("team_id")
+      .notNull()
+      .references(() => teams.id),
+    played: smallint("played").notNull().default(0),
+    won: smallint("won").notNull().default(0),
+    drawn: smallint("drawn").notNull().default(0),
+    lost: smallint("lost").notNull().default(0),
+    goalsFor: smallint("goals_for").notNull().default(0),
+    goalsAgainst: smallint("goals_against").notNull().default(0),
+    source: text("source").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.seasonId, t.teamId] })],
 );
 
 // Fixtures (a fixture becomes a result once finished)

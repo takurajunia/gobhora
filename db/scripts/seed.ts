@@ -3,8 +3,9 @@
 //   npm run db:seed:reset  wipes ALL data, then imports (only where ALLOW_DB_RESET=true)
 import { readFileSync } from "node:fs";
 import { parse } from "csv-parse/sync";
-import { count, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "../index";
+import { deleteLeague } from "./delete-league";
 import {
   fixtures,
   leagues,
@@ -20,11 +21,11 @@ const TIMEZONE = "+02:00"; // Zimbabwe time, no daylight saving
 
 // TODO: confirm the league's full name and details with Lu6er
 const LEAGUE = {
-  name: "SAZSL",
-  slug: "sazsl",
-  shortName: "SAZSL",
-  region: "Harare",
-  tier: "Premier Tier",
+  name: "GoBhora Demo League",
+  slug: "demo",
+  shortName: "Demo",
+  region: "Sample data",
+  tier: null,
 };
 const SEASON = {
   name: "2026",
@@ -178,12 +179,13 @@ async function main() {
   }
 
   // 2. Refuse to import twice, unless resetting
-  const [{ value: existingLeagues }] = await db
-    .select({ value: count() })
-    .from(leagues);
-  if (existingLeagues > 0 && !reset) {
+  const [existing] = await db
+    .select({ id: leagues.id })
+    .from(leagues)
+    .where(eq(leagues.slug, LEAGUE.slug));
+  if (existing && !reset) {
     throw new Error(
-      "data already exists. To wipe it and import again, run: npm run db:seed:reset",
+      "the demo league already exists. To wipe it and import again, run: npm run db:seed:reset",
     );
   }
   if (reset && process.env.ALLOW_DB_RESET !== "true") {
@@ -194,11 +196,7 @@ async function main() {
 
   // 3. Import everything in one transaction: all or nothing
   await db.transaction(async (tx) => {
-    if (reset) {
-      await tx.execute(
-        sql`truncate table appearances, cards, goals, fixtures, players, teams, venues, seasons, leagues restart identity cascade`,
-      );
-    }
+    if (reset) await deleteLeague(tx, LEAGUE.slug);
 
     const [league] = await tx
       .insert(leagues)
@@ -219,6 +217,10 @@ async function main() {
           directions: v.directions || null,
         })),
       )
+      .onConflictDoUpdate({
+        target: venues.slug,
+        set: { name: sql`excluded.name` },
+      })
       .returning({ id: venues.id, name: venues.name });
     const venueIds = new Map(
       insertedVenues.map((v) => [key(v.name), v.id] as const),
