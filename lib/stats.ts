@@ -44,6 +44,7 @@ export type TableRow = Omit<RawTableRow, "form"> & {
 };
 
 // Sorted by points, then goal difference, then goals scored. Form is newest first.
+// Totals = matches entered in GoBhora + any carried-over standings (team_carryovers).
 export async function getLeagueTable(seasonId: number): Promise<TableRow[]> {
   const { rows } = await db.execute<RawTableRow>(sql`
     with team_results as (
@@ -60,25 +61,42 @@ export async function getLeagueTable(seasonId: number): Promise<TableRow[]> {
              case when gf > ga then 'W' when gf = ga then 'D' else 'L' end as outcome,
              row_number() over (partition by team_id order by kickoff_at desc, id desc) as recency
       from team_results
+    ),
+    match_totals as (
+      select team_id,
+             count(*) as played,
+             count(*) filter (where outcome = 'W') as won,
+             count(*) filter (where outcome = 'D') as drawn,
+             count(*) filter (where outcome = 'L') as lost,
+             sum(gf) as goals_for,
+             sum(ga) as goals_against,
+             string_agg(outcome, '' order by recency) filter (where recency <= 5) as form
+      from ranked
+      group by team_id
+    ),
+    totals as (
+      select t.id, t.name, t.slug, t.short_name, t.logo_url,
+             coalesce(m.played, 0) + coalesce(c.played, 0) as played,
+             coalesce(m.won, 0) + coalesce(c.won, 0) as won,
+             coalesce(m.drawn, 0) + coalesce(c.drawn, 0) as drawn,
+             coalesce(m.lost, 0) + coalesce(c.lost, 0) as lost,
+             coalesce(m.goals_for, 0) + coalesce(c.goals_for, 0) as goals_for,
+             coalesce(m.goals_against, 0) + coalesce(c.goals_against, 0) as goals_against,
+             coalesce(m.form, '') as form
+      from teams t
+      join seasons s on s.id = ${seasonId} and s.league_id = t.league_id
+      left join match_totals m on m.team_id = t.id
+      left join team_carryovers c on c.team_id = t.id and c.season_id = ${seasonId}
     )
-    select t.id, t.name, t.slug,
-           t.short_name as "shortName",
-           t.logo_url as "logoUrl",
-           count(r.team_id)::int as played,
-           (count(*) filter (where r.outcome = 'W'))::int as won,
-           (count(*) filter (where r.outcome = 'D'))::int as drawn,
-           (count(*) filter (where r.outcome = 'L'))::int as lost,
-           coalesce(sum(r.gf), 0)::int as "goalsFor",
-           coalesce(sum(r.ga), 0)::int as "goalsAgainst",
-           coalesce(sum(r.gf - r.ga), 0)::int as "goalDifference",
-           (3 * count(*) filter (where r.outcome = 'W')
-              + count(*) filter (where r.outcome = 'D'))::int as points,
-           coalesce(string_agg(r.outcome, '' order by r.recency) filter (where r.recency <= 5), '') as form
-    from teams t
-    join seasons s on s.id = ${seasonId} and s.league_id = t.league_id
-    left join ranked r on r.team_id = t.id
-    group by t.id
-    order by points desc, "goalDifference" desc, "goalsFor" desc, t.name
+    select id, name, slug, short_name as "shortName", logo_url as "logoUrl",
+           played::int, won::int, drawn::int, lost::int,
+           goals_for::int as "goalsFor",
+           goals_against::int as "goalsAgainst",
+           (goals_for - goals_against)::int as "goalDifference",
+           (3 * won + drawn)::int as points,
+           form
+    from totals
+    order by points desc, "goalDifference" desc, "goalsFor" desc, name
   `);
 
   return rows.map((row, index) => ({
@@ -99,26 +117,45 @@ export type ScorerRow = {
   goals: number;
 };
 
-// Own goals never count towards a player's tally. Totals follow a player after a transfer.
+// Own goals never count. Carried-over goals are added. Totals follow a player after a transfer.
 export async function getTopScorers(
   seasonId: number,
   limit = 10,
 ): Promise<ScorerRow[]> {
   const { rows } = await db.execute<ScorerRow>(sql`
+    with tallies as (
+      select g.player_id, count(*) as goals
+      from goals g
+      join fixtures f on f.id = g.fixture_id
+      where f.season_id = ${seasonId} and not g.is_own_goal and g.player_id is not null
+      group by g.player_id
+      union all
+      select c.player_id, sum(c.goals)
+      from player_carryovers c
+      where c.season_id = ${seasonId}
+      group by c.player_id
+    )
     select p.id as "playerId", p.name, p.nickname, p.photo_url as "photoUrl",
            t.name as "teamName", t.slug as "teamSlug", t.logo_url as "teamLogoUrl",
-           count(*)::int as goals
-    from goals g
-    join fixtures f on f.id = g.fixture_id
-    join players p on p.id = g.player_id
+           sum(x.goals)::int as goals
+    from tallies x
+    join players p on p.id = x.player_id
     left join teams t on t.id = p.team_id
-    where f.season_id = ${seasonId} and not g.is_own_goal
     group by p.id, t.id
+    having sum(x.goals) > 0
     order by goals desc, p.name
     limit ${limit}
   `);
   return rows;
 }
+
+export type Carryover = {
+  goals: number;
+  ownGoals: number;
+  redCards: number;
+  yellowCardsTracked: boolean;
+  source: string;
+};
 
 export type PlayerSeasonStats = {
   appearances: number;
@@ -130,6 +167,7 @@ export type PlayerSeasonStats = {
   cleanSheets: number;
   motm: number;
   goalsByTeam: { teamName: string; goals: number }[];
+  carryover: Carryover | null; // set when the totals include pre-GoBhora data
 };
 
 export async function getPlayerSeasonStats(
@@ -138,7 +176,9 @@ export async function getPlayerSeasonStats(
 ): Promise<PlayerSeasonStats> {
   const {
     rows: [totals],
-  } = await db.execute<Omit<PlayerSeasonStats, "goalsByTeam">>(sql`
+  } = await db.execute<
+    Omit<PlayerSeasonStats, "goalsByTeam" | "carryover">
+  >(sql`
     with season_fixtures as (
       select id, home_team_id, away_team_id, home_score, away_score, motm_player_id
       from fixtures
@@ -167,21 +207,69 @@ export async function getPlayerSeasonStats(
       )::int as "cleanSheets"
   `);
 
+  // Totals carried over from before GoBhora (the stats sheet), if any
+  const {
+    rows: [carried],
+  } = await db.execute<{
+    entries: number;
+    goals: number;
+    ownGoals: number;
+    redCards: number;
+    yellowCards: number | null;
+    source: string | null;
+  }>(sql`
+    select count(*)::int as entries,
+           coalesce(sum(goals), 0)::int as goals,
+           coalesce(sum(own_goals), 0)::int as "ownGoals",
+           coalesce(sum(red_cards), 0)::int as "redCards",
+           sum(yellow_cards)::int as "yellowCards",
+           min(source) as source
+    from player_carryovers
+    where player_id = ${playerId} and season_id = ${seasonId}
+  `);
+
   // Season goals split by the team he scored them for (matters after a transfer)
   const { rows: goalsByTeam } = await db.execute<{
     teamName: string;
     goals: number;
   }>(sql`
-    select t.name as "teamName", count(*)::int as goals
-    from goals g
-    join fixtures f on f.id = g.fixture_id
-    join teams t on t.id = g.team_id
-    where g.player_id = ${playerId} and f.season_id = ${seasonId} and not g.is_own_goal
+    select t.name as "teamName", sum(x.goals)::int as goals
+    from (
+      select g.team_id, count(*) as goals
+      from goals g
+      join fixtures f on f.id = g.fixture_id
+      where g.player_id = ${playerId} and f.season_id = ${seasonId} and not g.is_own_goal
+      group by g.team_id
+      union all
+      select c.team_id, c.goals
+      from player_carryovers c
+      where c.player_id = ${playerId} and c.season_id = ${seasonId} and c.goals > 0
+    ) x
+    join teams t on t.id = x.team_id
     group by t.id
     order by goals desc
   `);
 
-  return { ...totals, goalsByTeam };
+  const carryover: Carryover | null =
+    carried.entries > 0
+      ? {
+          goals: carried.goals,
+          ownGoals: carried.ownGoals,
+          redCards: carried.redCards,
+          yellowCardsTracked: carried.yellowCards !== null,
+          source: carried.source ?? "",
+        }
+      : null;
+
+  return {
+    ...totals,
+    goals: totals.goals + (carryover?.goals ?? 0),
+    ownGoals: totals.ownGoals + (carryover?.ownGoals ?? 0),
+    redCards: totals.redCards + (carryover?.redCards ?? 0),
+    yellowCards: totals.yellowCards + (carried.yellowCards ?? 0),
+    goalsByTeam,
+    carryover,
+  };
 }
 
 export type MatchTeam = {
@@ -358,7 +446,7 @@ export type SquadPlayer = {
   id: number;
   name: string;
   nickname: string | null;
-  position: Position;
+  position: Position | null;
   jerseyNumber: number | null;
   photoUrl: string | null;
   isCaptain: boolean;
@@ -377,11 +465,13 @@ export async function getSquad(
            p.is_captain as "isCaptain",
            (select count(*) from appearances a join fixtures f on f.id = a.fixture_id
              where a.player_id = p.id and f.season_id = ${seasonId} and f.status = 'finished')::int as appearances,
-           (select count(*) from goals g join fixtures f on f.id = g.fixture_id
-             where g.player_id = p.id and f.season_id = ${seasonId} and not g.is_own_goal)::int as goals
+           ((select count(*) from goals g join fixtures f on f.id = g.fixture_id
+             where g.player_id = p.id and f.season_id = ${seasonId} and not g.is_own_goal)
+            + coalesce((select sum(c.goals) from player_carryovers c
+                        where c.player_id = p.id and c.season_id = ${seasonId}), 0))::int as goals
     from players p
     where p.team_id = ${teamId} and p.status = 'active'
-    order by p.position, p.jersey_number nulls last, p.name
+    order by p.position nulls last, p.jersey_number nulls last, p.name
   `);
   return rows;
 }
@@ -390,7 +480,7 @@ export type PlayerProfile = {
   id: number;
   name: string;
   nickname: string | null;
-  position: Position;
+  position: Position | null;
   jerseyNumber: number | null;
   photoUrl: string | null;
   isCaptain: boolean;
@@ -483,6 +573,7 @@ export async function getLeagueDirectory(): Promise<LeagueCard[]> {
            (select count(*) from teams t where t.league_id = l.id)::int as "teamCount",
            exists (select 1 from seasons s where s.league_id = l.id and s.is_current) as "isActive"
     from leagues l
+    where l.is_listed
     order by l.name
   `);
   return rows;
@@ -501,6 +592,7 @@ export async function getTeamsForSearch(): Promise<TeamSearchRow[]> {
     select t.name, t.slug, t.short_name as "shortName", t.area, l.name as "leagueName"
     from teams t
     join leagues l on l.id = t.league_id
+    where l.is_listed
     order by t.name
   `);
   return rows;

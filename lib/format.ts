@@ -74,6 +74,7 @@ export const POSITION_GROUPS = [
   { position: "DF", label: "Defenders" },
   { position: "MF", label: "Midfielders" },
   { position: "ST", label: "Strikers" },
+  { position: null, label: "Position not set" },
 ] as const;
 
 // 1st, 2nd, 3rd, 4th ... 11th, 12th, 13th ... 21st
@@ -81,4 +82,8 @@ export function ordinal(n: number) {
   const suffixes = ["th", "st", "nd", "rd"];
   const v = n % 100;
   return n + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
+}
+
+export function positionLabel(position: keyof typeof POSITION_LABELS | null) {
+  return position ? POSITION_LABELS[position] : "Position not set";
 }

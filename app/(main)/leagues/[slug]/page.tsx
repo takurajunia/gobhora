@@ -67,9 +67,13 @@ async function LeagueContent({ params }: Props) {
       />
 
       <Section title="League Table" href={`${base}/table`}>
-        <div className="rounded-2xl bg-white px-3 shadow-sm">
-          <LeagueTable rows={table.slice(0, 4)} />
-        </div>
+        {table.some((row) => row.played > 0) ? (
+          <div className="rounded-2xl bg-white px-3 shadow-sm">
+            <LeagueTable rows={table.slice(0, 4)} />
+          </div>
+        ) : (
+          <Empty>Standings coming soon.</Empty>
+        )}
       </Section>
 
       <Section title="Results" href={`${base}/matches`}>
