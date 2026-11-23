@@ -27,7 +27,7 @@ async function ScorersContent({ params }: Props) {
   if (!league) notFound();
 
   const scorers = withRank(
-    await getTopScorers(league.seasonId, 100),
+    await getTopScorers(league.seasonId, 300),
     (s) => s.goals,
   );
 

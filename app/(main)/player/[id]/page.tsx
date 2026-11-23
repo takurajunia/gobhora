@@ -14,8 +14,8 @@ import {
   getPlayerRecentMatches,
   getPlayerSeasonStats,
 } from "@/lib/data";
-import { formatDay, POSITION_LABELS } from "@/lib/format";
-import type { PlayerMatch } from "@/lib/stats";
+import { formatDay, positionLabel } from "@/lib/format";
+import type { Carryover, PlayerMatch } from "@/lib/stats";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -77,7 +77,7 @@ async function PlayerContent({ params }: Props) {
         >
           {isKeeper && <Hand aria-hidden className="size-4" />}
           {player.jerseyNumber ? `#${player.jerseyNumber} • ` : ""}
-          {POSITION_LABELS[player.position]}
+          {positionLabel(player.position)}
           {player.isCaptain ? " • Captain" : ""}
         </p>
         {player.teamSlug && player.teamName && (
@@ -112,6 +112,8 @@ async function PlayerContent({ params }: Props) {
         {stats.ownGoals}
       </p>
 
+      {stats.carryover && <CarryoverNote carryover={stats.carryover} />}
+
       {stats.goalsByTeam.length > 1 && (
         <p className="rounded-2xl bg-white p-3 text-sm shadow-sm">
           <span className="font-semibold">Season: {stats.goals} goals</span>{" "}
@@ -135,7 +137,7 @@ async function PlayerContent({ params }: Props) {
           </ul>
         ) : (
           <p className="rounded-2xl bg-white p-4 text-sm text-muted shadow-sm">
-            No appearances this season yet.
+            No matches entered in GoBhora yet.
           </p>
         )}
       </section>
@@ -220,5 +222,27 @@ function MatchRow({
         )}
       </div>
     </li>
+  );
+}
+
+function CarryoverNote({ carryover: c }: { carryover: Carryover }) {
+  const plural = (n: number, word: string) =>
+    `${n} ${word}${n === 1 ? "" : "s"}`;
+  const parts = [
+    c.goals ? plural(c.goals, "goal") : null,
+    c.ownGoals ? plural(c.ownGoals, "own goal") : null,
+    c.redCards ? plural(c.redCards, "red card") : null,
+  ].filter(Boolean);
+
+  return (
+    <p className="rounded-2xl bg-brand/10 p-3 text-xs leading-relaxed">
+      {parts.length > 0 && (
+        <>
+          Includes {parts.join(", ")} recorded before GoBhora ({c.source}).{" "}
+        </>
+      )}
+      {!c.yellowCardsTracked && "Yellow cards weren't tracked then. "}
+      Matches played only counts games entered in GoBhora.
+    </p>
   );
 }

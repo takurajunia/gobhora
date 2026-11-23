@@ -34,9 +34,15 @@ async function TableContent({ params }: Props) {
         subtitle={`${league.leagueName} ${league.seasonName}`}
         backHref={`/leagues/${slug}`}
       />
-      <div className="rounded-2xl bg-white px-3 shadow-sm">
-        <FullLeagueTable rows={table} />
-      </div>
+      {table.some((row) => row.played > 0) ? (
+        <div className="rounded-2xl bg-white px-3 shadow-sm">
+          <FullLeagueTable rows={table} />
+        </div>
+      ) : (
+        <p className="rounded-2xl bg-white p-4 text-sm text-muted shadow-sm">
+          Standings coming soon.
+        </p>
+      )}
     </>
   );
 }

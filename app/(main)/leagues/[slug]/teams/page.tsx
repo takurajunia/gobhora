@@ -52,7 +52,9 @@ async function TeamsContent({ params }: Props) {
               />
               <span className="mt-2 font-semibold leading-tight">{t.name}</span>
               <span className="mt-auto pt-1 text-xs text-muted">
-                {ordinal(t.position)} • {t.points} pts
+                {t.played > 0
+                  ? `${ordinal(t.position)} • ${t.points} pts`
+                  : "Standings soon"}
               </span>
             </Link>
           </li>

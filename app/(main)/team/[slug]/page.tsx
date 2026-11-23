@@ -23,7 +23,7 @@ import {
   goalLabel,
   ordinal,
   POSITION_GROUPS,
-  POSITION_LABELS,
+  positionLabel,
 } from "@/lib/format";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -86,7 +86,7 @@ async function TeamContent({ params }: Props) {
               .filter(Boolean)
               .join(" • ")}
           </p>
-          {standing && (
+          {standing && standing.played > 0 && (
             <p className="mt-1 text-xs font-semibold text-brand">
               {ordinal(standing.position)} in {league.leagueName}
             </p>
@@ -170,7 +170,7 @@ async function TeamContent({ params }: Props) {
             <div>
               <p className="font-semibold">{captain.name}</p>
               <p className="text-xs text-muted">
-                {POSITION_LABELS[captain.position]}
+                {positionLabel(captain.position)}
                 {captain.jerseyNumber
                   ? ` • Number ${captain.jerseyNumber}`
                   : ""}
@@ -203,7 +203,7 @@ async function TeamContent({ params }: Props) {
           if (players.length === 0) return null;
           return (
             <div
-              key={position}
+              key={label}
               className="rounded-2xl bg-white px-3 pt-2 shadow-sm"
             >
               <p className="flex text-xs font-medium text-muted">
